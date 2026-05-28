@@ -11,11 +11,13 @@ namespace PRN232.LMS.API.Controllers;
 [Consumes("application/json")]
 public class CoursesController : ApiControllerBase
 {
-    private readonly ICourseService _service;
+    private readonly ICourseService _courseService;
+    private readonly IEnrollmentService _enrollmentService;
 
-    public CoursesController(ICourseService service)
+    public CoursesController(ICourseService courseService, IEnrollmentService enrollmentService)
     {
-        _service = service;
+        _courseService = courseService;
+        _enrollmentService = enrollmentService;
     }
 
     /// <summary>Get paginated courses.</summary>
@@ -24,8 +26,25 @@ public class CoursesController : ApiControllerBase
     public async Task<IActionResult> GetAll([FromQuery] ListQueryRequest query)
     {
         var businessQuery = query.ToBusiness();
-        var result = await _service.GetAllAsync(businessQuery);
+        var result = await _courseService.GetAllAsync(businessQuery);
         return Ok(PagedOk(result, c => ApiMapper.ToResponse(c), businessQuery.Fields));
+    }
+
+    /// <summary>Get course enrollments.</summary>
+    [HttpGet("{id:int}/enrollments")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetEnrollments(int id, [FromQuery] ListQueryRequest query)
+    {
+        var course = await _courseService.GetByIdAsync(id);
+        if (course == null)
+        {
+            return NotFound(ApiResponse<object>.Fail("Course not found."));
+        }
+
+        var businessQuery = query.ToBusiness();
+        var result = await _enrollmentService.GetByCourseAsync(id, businessQuery);
+        return Ok(PagedOk(result, e => ApiMapper.ToResponse(e), businessQuery.Fields));
     }
 
     /// <summary>Get course by id.</summary>
@@ -34,7 +53,7 @@ public class CoursesController : ApiControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, [FromQuery] string? fields)
     {
-        var item = await _service.GetByIdAsync(id);
+        var item = await _courseService.GetByIdAsync(id);
         if (item == null)
         {
             return NotFound(ApiResponse<object>.Fail("Course not found."));
@@ -56,7 +75,7 @@ public class CoursesController : ApiControllerBase
 
         try
         {
-            var created = await _service.CreateAsync(ApiMapper.ToBusiness(request));
+            var created = await _courseService.CreateAsync(ApiMapper.ToBusiness(request));
             return CreatedAtAction(nameof(GetById), new { id = created.CourseId },
                 ApiResponse<object>.Ok(ApiMapper.ToResponse(created), "Course created successfully."));
         }
@@ -75,7 +94,7 @@ public class CoursesController : ApiControllerBase
     {
         try
         {
-            var updated = await _service.UpdateAsync(id, ApiMapper.ToBusiness(request));
+            var updated = await _courseService.UpdateAsync(id, ApiMapper.ToBusiness(request));
             if (!updated)
             {
                 return NotFound(ApiResponse<object>.Fail("Course not found."));
@@ -95,7 +114,7 @@ public class CoursesController : ApiControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        var deleted = await _courseService.DeleteAsync(id);
         if (!deleted)
         {
             return NotFound(ApiResponse<object>.Fail("Course not found."));

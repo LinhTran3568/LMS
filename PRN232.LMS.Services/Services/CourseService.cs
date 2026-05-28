@@ -10,11 +10,16 @@ namespace PRN232.LMS.Services.Services;
 public class CourseService : ICourseService
 {
     private readonly ICourseRepository _repository;
+    private readonly IEnrollmentRepository _enrollmentRepository;
     private readonly ISemesterRepository _semesterRepository;
 
-    public CourseService(ICourseRepository repository, ISemesterRepository semesterRepository)
+    public CourseService(
+        ICourseRepository repository,
+        IEnrollmentRepository enrollmentRepository,
+        ISemesterRepository semesterRepository)
     {
         _repository = repository;
+        _enrollmentRepository = enrollmentRepository;
         _semesterRepository = semesterRepository;
     }
 
@@ -32,6 +37,23 @@ public class CourseService : ICourseService
         return new PagedResultBusiness<CourseBusiness>
         {
             Items = data.Items.Select(e => EntityMapper.ToBusiness(e, includeSemester, includeEnrollments)).ToList(),
+            Page = data.Page,
+            PageSize = data.PageSize,
+            TotalItems = data.TotalItems
+        };
+    }
+
+    public async Task<PagedResultBusiness<EnrollmentBusiness>> GetEnrollmentsAsync(int courseId, ListQueryBusiness query)
+    {
+        var includeStudent = query.ShouldExpand("student");
+        var data = await _enrollmentRepository.GetPagedByCourseAsync(
+            courseId,
+            QueryMapper.ToDataQuery(query),
+            includeStudent);
+
+        return new PagedResultBusiness<EnrollmentBusiness>
+        {
+            Items = data.Items.Select(e => EntityMapper.ToBusiness(e, includeStudent, includeCourse: false)).ToList(),
             Page = data.Page,
             PageSize = data.PageSize,
             TotalItems = data.TotalItems

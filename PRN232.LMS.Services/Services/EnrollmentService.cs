@@ -43,6 +43,19 @@ public class EnrollmentService : IEnrollmentService
         };
     }
 
+    public async Task<PagedResultBusiness<EnrollmentBusiness>> GetByCourseAsync(int courseId, ListQueryBusiness query)
+    {
+        var includeStudent = query.ShouldExpand("student");
+        var data = await _repository.GetPagedByCourseAsync(courseId, QueryMapper.ToDataQuery(query), includeStudent);
+        return new PagedResultBusiness<EnrollmentBusiness>
+        {
+            Items = data.Items.Select(e => EntityMapper.ToBusiness(e, includeStudent, includeCourse: false)).ToList(),
+            Page = data.Page,
+            PageSize = data.PageSize,
+            TotalItems = data.TotalItems
+        };
+    }
+
     public async Task<EnrollmentBusiness> CreateAsync(EnrollmentBusiness business)
     {
         if (!await _studentRepository.ExistsAsync(business.StudentId))

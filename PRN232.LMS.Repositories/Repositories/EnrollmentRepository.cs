@@ -72,6 +72,40 @@ public class EnrollmentRepository : IEnrollmentRepository
         };
     }
 
+    public async Task<PagedDataResult<EnrollmentEntity>> GetPagedByCourseAsync(
+        int courseId,
+        DataQueryOptions options,
+        bool includeStudent)
+    {
+        IQueryable<EnrollmentEntity> query = _context.Enrollments.AsNoTracking()
+            .Where(e => e.CourseId == courseId);
+
+        if (!string.IsNullOrWhiteSpace(options.Search))
+        {
+            var keyword = options.Search.Trim();
+            query = query.Where(e =>
+                e.Status.Contains(keyword) ||
+                _context.Students.Any(s => s.StudentId == e.StudentId && s.FullName.Contains(keyword)));
+        }
+
+        if (includeStudent)
+        {
+            query = query.Include(e => e.Student);
+        }
+
+        var total = await query.CountAsync();
+        query = query.ApplySort(options.Sort).ApplyPaging(options.Page, options.PageSize);
+        var items = await query.ToListAsync();
+
+        return new PagedDataResult<EnrollmentEntity>
+        {
+            Items = items,
+            TotalItems = total,
+            Page = options.Page < 1 ? 1 : options.Page,
+            PageSize = options.PageSize < 1 ? 10 : options.PageSize
+        };
+    }
+
     public async Task<EnrollmentEntity> AddAsync(EnrollmentEntity entity)
     {
         _context.Enrollments.Add(entity);

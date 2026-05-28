@@ -7,6 +7,7 @@ public interface ICourseService
 {
     Task<CourseBusiness?> GetByIdAsync(int id);
     Task<PagedResultBusiness<CourseBusiness>> GetAllAsync(ListQueryBusiness query);
+    Task<PagedResultBusiness<EnrollmentBusiness>> GetEnrollmentsAsync(int courseId, ListQueryBusiness query);
     Task<CourseBusiness> CreateAsync(CourseBusiness business);
     Task<bool> UpdateAsync(int id, CourseBusiness business);
     Task<bool> DeleteAsync(int id);

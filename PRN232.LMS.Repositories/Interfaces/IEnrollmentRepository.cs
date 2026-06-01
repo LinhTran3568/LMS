@@ -7,7 +7,7 @@ public interface IEnrollmentRepository
 {
     Task<EnrollmentEntity?> GetByIdAsync(int id, bool includeStudent, bool includeCourse);
     Task<PagedDataResult<EnrollmentEntity>> GetPagedAsync(DataQueryOptions options, bool includeStudent, bool includeCourse);
-    Task<PagedDataResult<EnrollmentEntity>> GetPagedByCourseAsync(int courseId, DataQueryOptions options, bool includeStudent);
+    Task<PagedDataResult<EnrollmentEntity>> GetPagedByCourseAsync(int courseId, DataQueryOptions options, bool includeStudent, bool includeCourse);
     Task<EnrollmentEntity> AddAsync(EnrollmentEntity entity);
     Task<bool> UpdateAsync(EnrollmentEntity entity);
     Task<bool> DeleteAsync(int id);

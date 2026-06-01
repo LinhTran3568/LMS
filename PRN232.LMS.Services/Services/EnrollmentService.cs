@@ -31,8 +31,8 @@ public class EnrollmentService : IEnrollmentService
 
     public async Task<PagedResultBusiness<EnrollmentBusiness>> GetAllAsync(ListQueryBusiness query)
     {
-        var includeStudent = query.ShouldExpand("student");
-        var includeCourse = query.ShouldExpand("course");
+        var includeStudent = string.IsNullOrEmpty(query.Expand) || query.ShouldExpand("student");
+        var includeCourse = string.IsNullOrEmpty(query.Expand) || query.ShouldExpand("course");
         var data = await _repository.GetPagedAsync(QueryMapper.ToDataQuery(query), includeStudent, includeCourse);
         return new PagedResultBusiness<EnrollmentBusiness>
         {
@@ -45,11 +45,12 @@ public class EnrollmentService : IEnrollmentService
 
     public async Task<PagedResultBusiness<EnrollmentBusiness>> GetByCourseAsync(int courseId, ListQueryBusiness query)
     {
-        var includeStudent = query.ShouldExpand("student");
-        var data = await _repository.GetPagedByCourseAsync(courseId, QueryMapper.ToDataQuery(query), includeStudent);
+        var includeStudent = string.IsNullOrEmpty(query.Expand) || query.ShouldExpand("student");
+        var includeCourse = string.IsNullOrEmpty(query.Expand) || query.ShouldExpand("course");
+        var data = await _repository.GetPagedByCourseAsync(courseId, QueryMapper.ToDataQuery(query), includeStudent, includeCourse);
         return new PagedResultBusiness<EnrollmentBusiness>
         {
-            Items = data.Items.Select(e => EntityMapper.ToBusiness(e, includeStudent, includeCourse: false)).ToList(),
+            Items = data.Items.Select(e => EntityMapper.ToBusiness(e, includeStudent, includeCourse)).ToList(),
             Page = data.Page,
             PageSize = data.PageSize,
             TotalItems = data.TotalItems

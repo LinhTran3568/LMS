@@ -14,7 +14,7 @@ public abstract class ApiControllerBase : ControllerBase
     protected static ApiResponse<object> PagedOk<TResponse>(
         PagedResultBusiness<TResponse> paged,
         Func<TResponse, object> map,
-        string? fields)
+        string? fields = null)
     {
         var items = paged.Items.Select(map).ToList();
         var payload = new PagedListResponse<object>

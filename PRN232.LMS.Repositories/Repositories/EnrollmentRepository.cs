@@ -56,7 +56,7 @@ public class EnrollmentRepository : IEnrollmentRepository
 
         if (includeCourse)
         {
-            query = query.Include(e => e.Course);
+            query = query.Include(e => e.Course).ThenInclude(c => c!.Semester);
         }
 
         var total = await query.CountAsync();
@@ -75,7 +75,8 @@ public class EnrollmentRepository : IEnrollmentRepository
     public async Task<PagedDataResult<EnrollmentEntity>> GetPagedByCourseAsync(
         int courseId,
         DataQueryOptions options,
-        bool includeStudent)
+        bool includeStudent,
+        bool includeCourse)
     {
         IQueryable<EnrollmentEntity> query = _context.Enrollments.AsNoTracking()
             .Where(e => e.CourseId == courseId);
@@ -91,6 +92,11 @@ public class EnrollmentRepository : IEnrollmentRepository
         if (includeStudent)
         {
             query = query.Include(e => e.Student);
+        }
+
+        if (includeCourse)
+        {
+            query = query.Include(e => e.Course).ThenInclude(c => c!.Semester);
         }
 
         var total = await query.CountAsync();

@@ -27,7 +27,7 @@ public class CoursesController : ApiControllerBase
     {
         var businessQuery = query.ToBusiness();
         var result = await _courseService.GetAllAsync(businessQuery);
-        return Ok(PagedOk(result, c => ApiMapper.ToResponse(c), businessQuery.Fields));
+        return Ok(PagedOk(result, c => ApiMapper.ToResponse(c)));
     }
 
     /// <summary>Get course enrollments.</summary>
@@ -59,7 +59,7 @@ public class CoursesController : ApiControllerBase
             return NotFound(ApiResponse<object>.Fail("Course not found."));
         }
 
-        return Ok(ApiResponse<object>.Ok(ApplyFields(ApiMapper.ToResponse(item), fields)));
+        return Ok(ApiResponse<object>.Ok(ApiMapper.ToResponse(item)));
     }
 
     /// <summary>Create a course.</summary>
